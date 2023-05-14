@@ -1,9 +1,373 @@
 ﻿@page "/"
+@using rc2.Settings
+@using rc2.Utilities
+@using ApexCharts
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Loan calculator</PageTitle>
 
-<h1>Hello, world!</h1>
+<div style="width: 100%">
+    <div style="width: 50%; height: 33vh; float: left">
+        <ApexChart
+            TItem="DataPoint"
+            Title="Loan balance over time"
+            @ref="_balanceChart"
+            Options="_balanceOptions">
+            <ApexPointSeries
+                TItem="DataPoint"
+                Items="DataPoints"
+                Name="Loan balance"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Time)"
+                YValue="@(dp => (decimal)dp.Balance)"
+                OrderByDescending="e => e.X"/>
+        </ApexChart>
 
-Welcome to your new app.
+        <ApexChart
+            TItem="Relation"
+            Title="Total expenses"
+            @ref="_expensesChart"
+            Options="_expensesOptions">
+            <ApexPointSeries
+                TItem="Relation"
+                Items="Relations"
+                Name="Expenses"
+                SeriesType="SeriesType.Pie"
+                XValue="@(dp => dp.Name)"
+                YValue="@(dp => (decimal)dp.Value)"
+                OrderByDescending="e => e.X"
+                ShowDataLabels/>
+        </ApexChart>
+        <ApexChart
+            TItem="InterestDataPoint"
+            Title="Total interest proportion of loan"
+            @ref="_interestProportionChart"
+            Options="_interestProportionOptions">
+            <ApexPointSeries
+                TItem="InterestDataPoint"
+                Items="Interests"
+                Name="Interest proportion"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Interest * 100)"
+                YValue="@(dp => (decimal)dp.InterestProportion * 100)"
+                OrderByDescending="e => e.X"/>
+        </ApexChart>
+    </div>
+    <div style="margin-left: 50%; height: 33vh">
+        <ApexChart
+            TItem="DataPoint"
+            Title="Monthly expenses"
+            @ref="_costsChart"
+            Options="_costsOptions">
+            <ApexPointSeries
+                TItem="DataPoint"
+                Items="DataPoints"
+                Name="Amortization"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Time)"
+                YValue="@(dp => (decimal)dp.Amortization)"
+                OrderByDescending="e => e.X"/>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+            <ApexPointSeries
+                TItem="DataPoint"
+                Items="DataPoints"
+                Name="Interest"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Time)"
+                YValue="@(dp => (decimal)dp.Interest)"
+                OrderByDescending="e => e.X"/>
+
+
+            <ApexPointSeries
+                TItem="DataPoint"
+                Items="DataPoints"
+                Name="Fees"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Time)"
+                YValue="@(dp => (decimal)dp.Fees)"
+                OrderByDescending="e => e.X"/>
+
+
+            <ApexPointSeries
+                TItem="DataPoint"
+                Items="DataPoints"
+                Name="Total"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Time)"
+                YValue="@(dp => (decimal)dp.Payment)"
+                OrderByDescending="e => e.X"/>
+        </ApexChart>
+        <ApexChart
+            TItem="InterestDataPoint"
+            Title="Min monthly payment vs interest"
+            @ref="_interestChart"
+            Options="_interestOptions">
+            <ApexPointSeries
+                TItem="InterestDataPoint"
+                Items="Interests"
+                Name="Required monthly payment"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Interest * 100)"
+                YValue="@(dp => (decimal)dp.MaxPayment)"
+                OrderByDescending="e => e.X"/>
+        </ApexChart>
+        
+        <ApexChart
+            TItem="BalanceDataPoint"
+            Title="Min monthly payment vs balance"
+            @ref="_balanceCostChart"
+            Options="_balanceCostOptions">
+            <ApexPointSeries
+                TItem="BalanceDataPoint"
+                Items="BalanceCosts"
+                Name="Balance costs"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Balance)"
+                YValue="@(dp => (decimal)dp.MaxPayment)"
+                OrderByDescending="e => e.X"/>
+        </ApexChart>
+    </div>
+</div>
+
+@code {
+
+        private const string MoneyFormat =
+            "function (value, time, opts) {" +
+            "  return value > 1000000" +
+            "    ? (value / 1000000).toFixed(2) + 'M'" +
+            "    : value > 1000 " +
+            "        ? (value / 1000).toFixed(1) + 'k' " +
+            "        : value.toFixed(0)" +
+            "}";
+
+        private const string PercentageFormat =
+            "function (value, time, opts) {" +
+            "  return value.toFixed(1) + '%'" +
+            "}";
+
+    private Options _options = Options.Default;
+    private readonly YearTicker _yearTicker = new();
+
+
+    private ReferencingEnumerable<DataPoint> DataPoints => new(() => _result.DataPoints);
+
+    private ReferencingEnumerable<Relation> Relations => new(() => new[]
+    {
+        new Relation(_result.DataPoints, dp => dp.Interest, "Interest"),
+        new Relation(_result.DataPoints, dp => dp.Amortization, "Amortization")
+    });
+
+    private ReferencingEnumerable<InterestDataPoint> Interests => new(() => _result.InterestDataPoints);
+    private ReferencingEnumerable<BalanceDataPoint> BalanceCosts => new(() => _result.BalanceDataPoints);
+
+    private SimulationResult _result = SimulationResult.Empty;
+
+    private ApexChart<DataPoint> _balanceChart;
+
+    private ApexChartOptions<DataPoint> _balanceOptions = new()
+    {
+        Yaxis = new List<YAxis>()
+        {
+            new YAxis()
+            {
+                DecimalsInFloat = 0,
+                AxisTicks = new AxisTicks()
+                {
+                },
+                Title = new AxisTitle()
+                {
+                    Text = "Loan balance"
+                },
+                Labels = new YAxisLabels()
+                {
+                    Formatter = MoneyFormat
+                }
+            }
+        },
+        Xaxis = new XAxis()
+        {
+            Type = XAxisType.Numeric,
+            // TickAmount = 10,
+            TickPlacement = TickPlacement.On,
+            Title = new AxisTitle()
+            {
+                Text = "Time (years)"
+            }
+        }
+    };
+
+    private ApexChart<DataPoint> _costsChart;
+
+    private ApexChartOptions<DataPoint> _costsOptions = new()
+    {
+        Yaxis = new List<YAxis>()
+        {
+            new YAxis()
+            {
+                DecimalsInFloat = 0,
+                AxisTicks = new AxisTicks()
+                {
+                }
+            }
+        },
+        Xaxis = new XAxis()
+        {
+            Type = XAxisType.Numeric,
+            // TickAmount = 10,
+            TickPlacement = TickPlacement.On
+        }
+    };
+
+    private ApexChart<Relation> _expensesChart;
+
+    private ApexChartOptions<Relation> _expensesOptions = new()
+    {
+        Yaxis = new List<YAxis>()
+        {
+            new YAxis()
+            {
+                DecimalsInFloat = 0,
+                AxisTicks = new AxisTicks()
+                {
+                },
+                Labels = new YAxisLabels()
+                {
+                    Format = MoneyFormat
+                }
+            }
+        },
+        Xaxis = new XAxis()
+        {
+            Type = XAxisType.Numeric,
+            // TickAmount = 10,
+            TickPlacement = TickPlacement.On
+        }
+    };
+
+
+    private ApexChart<InterestDataPoint> _interestChart;
+
+    private ApexChartOptions<InterestDataPoint> _interestOptions = new()
+    {
+        Yaxis = new List<YAxis>()
+        {
+            new YAxis()
+            {
+                DecimalsInFloat = 0,
+                AxisTicks = new AxisTicks()
+                {
+                }
+            }
+        },
+        Xaxis = new XAxis()
+        {
+            Type = XAxisType.Numeric,
+            // TickAmount = 10,
+            DecimalsInFloat = 1,
+            Labels = new XAxisLabels()
+            {
+                Formatter = PercentageFormat
+            }
+        }
+    };
+
+
+    private ApexChart<InterestDataPoint> _interestProportionChart;
+
+    private ApexChartOptions<InterestDataPoint> _interestProportionOptions = new()
+    {
+        Yaxis = new List<YAxis>()
+        {
+            new YAxis()
+            {
+                DecimalsInFloat = 0,
+                AxisTicks = new AxisTicks()
+                {
+                },
+                Labels = new()
+                {
+                    Formatter = "function (value, time, formatter) { return value.toFixed(0) + '%' }"
+                }
+            }
+        },
+        Xaxis = new XAxis()
+        {
+            Type = XAxisType.Numeric,
+            // TickAmount = 10,
+            DecimalsInFloat = 1,
+            Labels = new XAxisLabels()
+            {
+                Formatter = PercentageFormat
+            }
+        }
+    };
+
+
+    private ApexChart<BalanceDataPoint> _balanceCostChart;
+
+    private ApexChartOptions<BalanceDataPoint> _balanceCostOptions = new()
+    {
+        Yaxis = new List<YAxis>()
+        {
+            new YAxis()
+            {
+                DecimalsInFloat = 0,
+                AxisTicks = new AxisTicks()
+                {
+                }
+            }
+        },
+        Xaxis = new XAxis()
+        {
+            Type = XAxisType.Numeric,
+            DecimalsInFloat = 1,
+            Labels = new XAxisLabels()
+            {
+                Formatter = MoneyFormat
+            }
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Update();
+        await _balanceChart.UpdateSeriesAsync(true);
+        await _costsChart.UpdateSeriesAsync(true);
+        await _expensesChart.UpdateSeriesAsync(true);
+        await _interestChart.UpdateSeriesAsync(true);
+        await _interestProportionChart.UpdateSeriesAsync(true);
+        await _balanceCostChart.UpdateSeriesAsync(true);
+    }
+
+    public async Task Update()
+    {
+        _result = await SimulateAll();
+    }
+
+    public async Task<SimulationResult> SimulateAll(Options? opt = null)
+    {
+        opt ??= _options;
+        var simulator = new Simulator(opt);
+        var generalTask = Task.Run(() => simulator.Simulate());
+        var yearsTask = Task.Run(() => simulator.SimulateYears());
+        var interestTask = Task.Run(() => simulator.SimulateInterest(
+            overridePayment: 0,
+            overrideInflation: 0
+            ));
+        var interestProportionTask = Task.Run(() => simulator.SimulateInterest());
+        var balanceTask = Task.Run(() => simulator.SimulateBalance(
+            overridePayment: 0,
+            overrideInflation: 0
+            ));
+
+        await Task.WhenAll(generalTask, yearsTask, interestTask, interestProportionTask, balanceTask);
+
+        return new SimulationResult(
+            DataPoints: generalTask.Result.Where(dp => dp != null).Select(dp => dp!),
+            YearDataPoints: yearsTask.Result,
+            InterestDataPoints: interestTask.Result,
+            InterestProportionDataPoints: interestProportionTask.Result,
+            BalanceDataPoints: balanceTask.Result
+            );
+    }
+
+}

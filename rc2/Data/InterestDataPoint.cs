@@ -1,6 +1,7 @@
 ﻿namespace rc2.Data;
 
-public class InterestDataPoint
-{
-    
-}
+public record InterestDataPoint(
+    double Interest,
+    double MaxPayment,
+    double InterestProportion
+);

@@ -1,6 +1,6 @@
 ﻿namespace rc2.Data;
 
-public class BalanceDataPoint
-{
-    
-}
+public record BalanceDataPoint(
+    double Balance,
+    double MaxPayment
+);

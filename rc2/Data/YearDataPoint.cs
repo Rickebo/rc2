@@ -1,3 +1,6 @@
 ﻿namespace rc2.Data;
 
-public record YearDataPoint();
+public record YearDataPoint(
+    double Time,
+    double Payment
+);

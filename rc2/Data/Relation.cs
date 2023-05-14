@@ -3,12 +3,14 @@ using ApexCharts;
 
 namespace rc2.Data;
 
-public class Relations
+public class Relation
 {
+    public double Value { get; }
+    public string Name { get; }
     
-    
-    public Relations(IEnumerable<DataPoint> dataPoints)
+    public Relation(IEnumerable<DataPoint> dataPoints, Func<DataPoint, double> selector, string name)
     {
-        
+        Value = dataPoints.Sum(selector);
+        Name = name;
     }
 }
