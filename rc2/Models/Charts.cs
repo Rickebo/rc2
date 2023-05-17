@@ -19,203 +19,263 @@ public class Charts
         "  return value.toFixed(1) + '%'" +
         "}";
 
-    public ApexChart<DataPoint> BalanceChart { get; set; }
+    private const string BackgroundColor = "transparent";
 
-    public ApexChartOptions<DataPoint> BalanceOptions { get; } = new()
-    {
-        Yaxis = new List<YAxis>()
-        {
-            new YAxis()
-            {
-                DecimalsInFloat = 0,
-                AxisTicks = new AxisTicks()
-                {
-                },
-                Title = new AxisTitle()
-                {
-                    Text = "Loan balance"
-                },
-                Labels = new YAxisLabels()
-                {
-                    Formatter = MoneyFormat
-                }
-            }
-        },
-        Xaxis = new XAxis()
-        {
-            Type = XAxisType.Numeric,
-            // TickAmount = 10,
-            TickPlacement = TickPlacement.On,
-            Title = new AxisTitle()
-            {
-                Text = "Time (years)"
-            }
-        }
-    };
+
+
+    public Theme Theme { get; set; }
+
+    public ApexChart<DataPoint> BalanceChart { get; set; }
+    public ApexChartOptions<DataPoint> BalanceOptions { get; }
 
     public ApexChart<DataPoint> CostsChart { get; set; }
-
-    public ApexChartOptions<DataPoint> CostsOptions { get; } = new()
-    {
-        Yaxis = new List<YAxis>()
-        {
-            new YAxis()
-            {
-                DecimalsInFloat = 0,
-                AxisTicks = new AxisTicks()
-                {
-                },
-                Title = new AxisTitle()
-                {
-                    Text = "Monthly expense"
-                },
-            }
-        },
-        Xaxis = new XAxis()
-        {
-            Type = XAxisType.Numeric,
-            // TickAmount = 10,
-            TickPlacement = TickPlacement.On,
-            Title = new AxisTitle()
-            {
-                Text = "Time (years)"
-            }
-        }
-    };
+    public ApexChartOptions<DataPoint> CostsOptions { get; }
 
     public ApexChart<Relation> ExpensesChart { get; set; }
-
-    public ApexChartOptions<Relation> ExpensesOptions { get; } = new()
-    {
-        Yaxis = new List<YAxis>()
-        {
-            new YAxis()
-            {
-                DecimalsInFloat = 0,
-                AxisTicks = new AxisTicks()
-                {
-                },
-                Labels = new YAxisLabels()
-                {
-                    Format = MoneyFormat
-                }
-            }
-        },
-        Xaxis = new XAxis()
-        {
-            Type = XAxisType.Numeric,
-            // TickAmount = 10,
-            TickPlacement = TickPlacement.On
-        }
-    };
+    public ApexChartOptions<Relation> ExpensesOptions { get; }
 
 
     public ApexChart<InterestDataPoint> InterestChart { get; set; }
-
-    public ApexChartOptions<InterestDataPoint> InterestOptions { get; } = new()
-    {
-        Yaxis = new List<YAxis>()
-        {
-            new YAxis()
-            {
-                DecimalsInFloat = 0,
-                AxisTicks = new AxisTicks()
-                {
-                },
-                Title = new AxisTitle()
-                {
-                    Text = "Min monthly payment"
-                }
-            }
-        },
-        Xaxis = new XAxis()
-        {
-            Type = XAxisType.Numeric,
-            // TickAmount = 10,
-            DecimalsInFloat = 1,
-            Labels = new XAxisLabels()
-            {
-                Formatter = PercentageFormat
-            },
-            Title = new AxisTitle()
-            {
-                Text = "Interest rate"
-            }
-        }
-    };
+    public ApexChartOptions<InterestDataPoint> InterestOptions { get; }
 
 
     public ApexChart<InterestDataPoint> InterestProportionChart { get; set; }
-
-    public ApexChartOptions<InterestDataPoint> InterestProportionOptions { get; } = new()
-    {
-        Yaxis = new List<YAxis>()
-        {
-            new YAxis()
-            {
-                DecimalsInFloat = 0,
-                AxisTicks = new AxisTicks()
-                {
-                },
-                Labels = new()
-                {
-                    Formatter = "function (value, time, formatter) { return value.toFixed(0) + '%' }"
-                },
-                Title = new AxisTitle()
-                {
-                    Text = "Proportion"
-                }
-            }
-        },
-        Xaxis = new XAxis()
-        {
-            Type = XAxisType.Numeric,
-            // TickAmount = 10,
-            DecimalsInFloat = 1,
-            Labels = new XAxisLabels()
-            {
-                Formatter = PercentageFormat
-            },
-            Title = new AxisTitle()
-            {
-                Text = "Interest rate"
-            }
-        }
-    };
+    public ApexChartOptions<InterestDataPoint> InterestProportionOptions { get; }
 
 
     public ApexChart<BalanceDataPoint> BalanceCostChart { get; set; }
+    public ApexChartOptions<BalanceDataPoint> BalanceCostOptions { get; } 
 
-    public ApexChartOptions<BalanceDataPoint> BalanceCostOptions { get; } = new()
+    public Charts(bool darkMode = true)
     {
-        Yaxis = new List<YAxis>()
+        Theme = new()
         {
-            new YAxis()
+            Mode = darkMode 
+                ? Mode.Dark
+                : Mode.Light,
+            
+        };
+        
+        BalanceOptions = new()
+        {
+            Theme = Theme,
+            Chart = new Chart()
             {
-                DecimalsInFloat = 0,
-                AxisTicks = new AxisTicks()
+                Background = BackgroundColor
+            },
+            Yaxis = new List<YAxis>()
+            {
+                new YAxis()
                 {
+                    DecimalsInFloat = 0,
+                    AxisTicks = new AxisTicks()
+                    {
+                    },
+                    Title = new AxisTitle()
+                    {
+                        Text = "Loan balance"
+                    },
+                    Labels = new YAxisLabels()
+                    {
+                        Formatter = MoneyFormat
+                    }
+                }
+            },
+            Xaxis = new XAxis()
+            {
+                Type = XAxisType.Numeric,
+                // TickAmount = 10,
+                TickPlacement = TickPlacement.On,
+                Title = new AxisTitle()
+                {
+                    Text = "Time (years)"
+                }
+            }
+        };
+        
+        CostsOptions = new()
+        {
+            Theme = Theme,
+            Chart = new Chart()
+            {
+                Background = BackgroundColor
+            },
+            Yaxis = new List<YAxis>()
+            {
+                new YAxis()
+                {
+                    DecimalsInFloat = 0,
+                    AxisTicks = new AxisTicks()
+                    {
+                    },
+                    Title = new AxisTitle()
+                    {
+                        Text = "Monthly expense"
+                    },
+                }
+            },
+            Xaxis = new XAxis()
+            {
+                Type = XAxisType.Numeric,
+                // TickAmount = 10,
+                TickPlacement = TickPlacement.On,
+                Title = new AxisTitle()
+                {
+                    Text = "Time (years)"
+                }
+            }
+        };
+        
+        ExpensesOptions = new()
+        {
+            Theme = Theme,
+            Chart = new Chart()
+            {
+                Background = BackgroundColor
+            },
+            Yaxis = new List<YAxis>()
+            {
+                new YAxis()
+                {
+                    DecimalsInFloat = 0,
+                    AxisTicks = new AxisTicks()
+                    {
+                    },
+                    Labels = new YAxisLabels()
+                    {
+                        Format = MoneyFormat
+                    }
+                }
+            },
+            Xaxis = new XAxis()
+            {
+                Type = XAxisType.Numeric,
+                // TickAmount = 10,
+                TickPlacement = TickPlacement.On
+            }
+        };
+        
+        InterestOptions = new()
+        {
+            Theme = Theme,
+            Chart = new Chart()
+            {
+                Background = BackgroundColor
+            },
+            Yaxis = new List<YAxis>()
+            {
+                new YAxis()
+                {
+                    DecimalsInFloat = 0,
+                    AxisTicks = new AxisTicks()
+                    {
+                    },
+                    Title = new AxisTitle()
+                    {
+                        Text = "Min monthly payment"
+                    }
+                }
+            },
+            Xaxis = new XAxis()
+            {
+                Type = XAxisType.Numeric,
+                // TickAmount = 10,
+                DecimalsInFloat = 1,
+                Labels = new XAxisLabels()
+                {
+                    Formatter = PercentageFormat
                 },
                 Title = new AxisTitle()
                 {
-                    Text = "Max required monthly payment"
+                    Text = "Interest rate"
                 }
             }
-        },
-        Xaxis = new XAxis()
+        };
+        
+        InterestProportionOptions = new()
         {
-            Type = XAxisType.Numeric,
-            DecimalsInFloat = 1,
-            Labels = new XAxisLabels()
+            Theme = Theme,
+            Chart = new Chart()
             {
-                Formatter = MoneyFormat
+                Background = BackgroundColor
             },
-            Title = new AxisTitle()
+            Yaxis = new List<YAxis>()
             {
-                Text = "Loan"
+                new YAxis()
+                {
+                    DecimalsInFloat = 0,
+                    AxisTicks = new AxisTicks()
+                    {
+                    },
+                    Labels = new()
+                    {
+                        Formatter = "function (value, time, formatter) { return value.toFixed(0) + '%' }"
+                    },
+                    Title = new AxisTitle()
+                    {
+                        Text = "Proportion"
+                    }
+                }
+            },
+            Xaxis = new XAxis()
+            {
+                Type = XAxisType.Numeric,
+                // TickAmount = 10,
+                DecimalsInFloat = 1,
+                Labels = new XAxisLabels()
+                {
+                    Formatter = PercentageFormat
+                },
+                Title = new AxisTitle()
+                {
+                    Text = "Interest rate"
+                }
             }
-        }
-    };
+        };
+        
+        BalanceCostOptions = new()
+        {
+            Theme = Theme,
+            Chart = new Chart()
+            {
+                Background = BackgroundColor
+            },
+            Yaxis = new List<YAxis>()
+            {
+                new YAxis()
+                {
+                    DecimalsInFloat = 0,
+                    AxisTicks = new AxisTicks()
+                    {
+                    },
+                    Title = new AxisTitle()
+                    {
+                        Text = "Max required monthly payment"
+                    }
+                }
+            },
+            Xaxis = new XAxis()
+            {
+                Type = XAxisType.Numeric,
+                DecimalsInFloat = 1,
+                Labels = new XAxisLabels()
+                {
+                    Formatter = MoneyFormat
+                },
+                Title = new AxisTitle()
+                {
+                    Text = "Loan"
+                }
+            }
+        };
+    }
+
+    public void SetDarkMode(bool darkMode = true)
+    {
+        Theme.Mode = darkMode 
+            ? Mode.Dark
+            : Mode.Light;
+    }
 
     public async Task UpdateAll()
     {
@@ -227,6 +287,24 @@ public class Charts
             InterestChart?.UpdateSeriesAsync(),
             InterestProportionChart?.UpdateSeriesAsync(),
             BalanceCostChart?.UpdateSeriesAsync()
+        };
+
+        await Task.WhenAll(tasks
+            .Where(task => task != null)
+            .Select(task => task!)
+        );
+    }
+
+    public async Task UpdateAllOptions()
+    {
+        var tasks = new[]
+        {
+            BalanceChart?.UpdateOptionsAsync(true, true, true),
+            CostsChart?.UpdateOptionsAsync(true, true, true),
+            ExpensesChart?.UpdateOptionsAsync(true, true, true),
+            InterestChart?.UpdateOptionsAsync(true, true, true),
+            InterestProportionChart?.UpdateOptionsAsync(true, true, true),
+            BalanceCostChart?.UpdateOptionsAsync(true, true, true)
         };
 
         await Task.WhenAll(tasks

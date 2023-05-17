@@ -11,6 +11,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <PageTitle>Loan calculator</PageTitle>
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode"/>
 
 <div class="options-panel">
     @* Settings div *@
@@ -259,6 +260,8 @@
     private Options _options = Options.Default;
     private BindableOptions _bindableOptions;
     private readonly YearTicker _yearTicker = new();
+    private bool _isDarkMode = true;
+    private MudThemeProvider _mudThemeProvider;
 
 
     private ReferencingEnumerable<DataPoint> DataPoints => new(() => _result.DataPoints);
@@ -344,6 +347,17 @@
         await Refresh();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDarkMode = await _mudThemeProvider.GetSystemPreference();
+            _charts.SetDarkMode(_isDarkMode);
+            await _charts.UpdateAllOptions();
+            StateHasChanged();
+        }
+    }
+
     public void OnSettingsChanged()
     {
         localStorage.SetItemAsync("options", _options);
@@ -360,7 +374,7 @@
         await Update();
         await _charts.UpdateAll();
     }
-
+    
     public async Task Update()
     {
         _result = await SimulateAll();
