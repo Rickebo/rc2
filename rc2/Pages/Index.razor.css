@@ -1,0 +1,19 @@
+﻿.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 10px;
+}
+
+.options-panel {
+    
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 10px;
+}
+
+.options-item {
+    padding-top: 20px;
+}
