@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+REPO=$(cat repo.txt)
+
+echo Pushing to repo: $REPO
+
 docker build -t rc2 -f rc2/Dockerfile .
-docker tag rc2:latest repopummcs2xbx.rickebo.com/rickebo/rc2:latest
-docker push repopummcs2xbx.rickebo.com/rickebo/rc2:latest
+docker tag rc2:latest $REPO:latest
+docker push $REPO:latest

@@ -41,6 +41,8 @@ public class Simulator
         var monthlyPayment = payment;
         var fees = opt.Fees;
         var timeStep = opt.TimeStepFactor;
+        var monthlyTimeStep = timeStep / 12;
+        var monthlyTimeFactor = (1 / timeStep) / 12;
 
         DataPoint? dp = null;
 
@@ -54,6 +56,7 @@ public class Simulator
                 break;
             }
 
+            var currentFees = fees * monthlyTimeStep;
             var yearlyInterest = x * opt.Interest;
             var interestDeduction = opt.InterestDeductionExpression.Process(yearlyInterest);
             var currentInterest = x * opt.Interest * timeStep;
@@ -62,21 +65,22 @@ public class Simulator
 
             var xPercentage = x / opt.Balance;
             var currentMinAmortization = x * timeStep * opt.MinAmortizationExpression.Process(xPercentage);
-            var requiredPayment = currentInterest + currentMinAmortization + fees;
+            var requiredPayment = currentInterest + currentMinAmortization + currentFees;
+            var currentPayment = monthlyPayment * monthlyTimeStep;
 
-            if (!allowInsufficientPayment && monthlyPayment < requiredPayment)
+            if (!allowInsufficientPayment && currentPayment < requiredPayment)
                 yield break;
 
             var actualPayment = Math.Max(requiredPayment, monthlyPayment);
-            var amortization = actualPayment - currentInterest - fees;
+            var amortization = actualPayment - currentInterest - currentFees;
 
             dp = new DataPoint(
                 Balance: x,
                 Time: time,
-                Amortization: amortization,
-                Interest: currentInterest,
-                Payment: actualPayment,
-                Fees: fees
+                Amortization: amortization * monthlyTimeFactor,
+                Interest: currentInterest * monthlyTimeFactor,
+                Payment: actualPayment * monthlyTimeFactor,
+                Fees: fees * monthlyTimeFactor
             );
 
             if (!accumulatedResultOnly)

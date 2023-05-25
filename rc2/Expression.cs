@@ -1,4 +1,6 @@
-﻿namespace rc2;
+﻿using System.Globalization;
+
+namespace rc2;
 
 public class Expression
 {
@@ -21,7 +23,7 @@ public class Expression
 
         if (split.Length < 2)
         {
-            if (!double.TryParse(text, out var constant))
+            if (!TryParseDouble(text, out var constant))
                 throw new ArgumentException($"Invalid constant: {text}");
 
             return new Expression(text, _ => constant);
@@ -33,10 +35,10 @@ public class Expression
         var op = new string(opPart.Where(ch => !IsDigit(ch)).ToArray());
         var operatorValueString = new string(opPart.Where(IsDigit).ToArray());
         
-        if (!double.TryParse(operatorValueString, out var operatorValue))
+        if (!TryParseDouble(operatorValueString, out var operatorValue))
             throw new ArgumentException($"Invalid operator value: {operatorValueString}");
         
-        if (!double.TryParse(valuePart, out var value))
+        if (!TryParseDouble(valuePart, out var value))
             throw new ArgumentException($"Invalid value: {valuePart}");
 
         Func<double, double?> processor = op switch
@@ -56,4 +58,6 @@ public class Expression
     }
 
     public double? Process(double input) => _processor(input);
+    public static bool TryParseDouble(string input, out double output) => 
+        double.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out output);
 }

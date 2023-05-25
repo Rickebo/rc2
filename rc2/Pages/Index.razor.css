@@ -1,7 +1,19 @@
 ﻿.grid-container {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     padding: 10px;
+}
+
+@media only screen and (max-width: 1000px) {
+    .grid-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media only screen and (max-width: 640px) {
+    .grid-container {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
 }
 
 .options-panel {
