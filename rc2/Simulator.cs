@@ -35,6 +35,87 @@ public class Simulator
     {
         opt ??= _options;
 
+        var currentBalance = CalculateCorrectedBalance(opt);
+        var payment = overridePayment ?? opt.Payment;
+
+        var yearlyPayment = payment * 12;
+        var yearlyFees = opt.Fees * 12;
+        var yearlyInterest = opt.Interest;
+        var yearlyInflation = opt.Inflation;
+        var yearlyDepreciation = opt.Depreciation;
+
+        var timeStep = opt.TimeStepFactor;
+
+        DataPoint? dp = null;
+
+        for (var time = 0d; time < endTime; time += timeStep)
+        {
+            if (currentBalance < 0 && endAtZero)
+            {
+                if (accumulatedResultOnly)
+                    yield return dp;
+
+                break;
+            }
+
+            // If, for example, deduction is 0.3 (30%), then 30% of interest is deducted, hence factor should be 0.7.
+            var currentYearlyInterestFactor = 1 - opt.InterestDeductionExpression.Process(
+                currentBalance * yearlyInterest
+            );
+            var currentYearlyInterest = yearlyInterest * currentYearlyInterestFactor;
+
+            var currentLoanProportion = currentBalance / opt.Balance;
+            var requiredAmortization = currentBalance * opt.MinAmortizationExpression.Process(
+                currentLoanProportion
+            );
+            var currentYearlyInterestSum = currentBalance * currentYearlyInterest;
+
+            var requiredYearlyPayment = currentYearlyInterestSum + yearlyFees + requiredAmortization;
+            var currentYearlyPayment = yearlyPayment;
+
+            if (currentYearlyPayment < requiredYearlyPayment)
+            {
+                if (!allowInsufficientPayment)
+                    yield break;
+
+                currentYearlyPayment = requiredYearlyPayment;
+            }
+
+            var currentYearlyAmortization = currentYearlyPayment - currentYearlyInterestSum - yearlyFees;
+
+            dp = new DataPoint(
+                Balance: currentBalance,
+                Time: time,
+                Amortization: currentYearlyAmortization / 12,
+                Interest: currentYearlyInterestSum / 12,
+                Payment: currentYearlyPayment / 12,
+                Fees: yearlyFees / 12
+            );
+
+            if (!accumulatedResultOnly)
+                yield return dp;
+
+            currentBalance -= currentYearlyAmortization * timeStep;
+            
+            if (yearlyDepreciation > 0)
+                currentBalance -= currentBalance * yearlyDepreciation * timeStep;
+
+            yearlyPayment += yearlyPayment * yearlyInflation * timeStep;
+            yearlyFees += yearlyFees * yearlyInflation * timeStep;
+        }
+    }
+
+    public IEnumerable<DataPoint?> Simulate2(
+        double endTime = 100,
+        bool endAtZero = true,
+        bool accumulatedResultOnly = false,
+        double? overridePayment = null,
+        bool allowInsufficientPayment = false,
+        Options? opt = null
+    )
+    {
+        opt ??= _options;
+
         var x = CalculateCorrectedBalance(opt);
         var payment = overridePayment ?? opt.Payment;
 
@@ -191,7 +272,7 @@ public class Simulator
         opt.Inflation = inflation;
         opt.Payment = payment;
 
-        var min= opt.Balance * minBalanceFactor;
+        var min = opt.Balance * minBalanceFactor;
         var max = opt.Balance * maxBalanceFactor;
         var step = (max - min) * balanceStep;
 
