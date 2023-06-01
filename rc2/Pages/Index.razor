@@ -246,6 +246,51 @@
                 OrderByDescending="e => e.X"/>
         </ApexChart>
     </div>
+    <div>
+        <ApexChart
+            TItem="DataPoint"
+            Title="Total expense"
+            @ref="_charts.TotalCostsChart"
+            Options="_charts.TotalCostsOptions">
+            <ApexPointSeries
+                TItem="DataPoint"
+                Items="AggregatedDataPoints"
+                Name="Amortization"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Time)"
+                YValue="@(dp => (decimal)dp.Amortization)"
+                OrderByDescending="e => e.X"/>
+
+            <ApexPointSeries
+                TItem="DataPoint"
+                Items="AggregatedDataPoints"
+                Name="Interest"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Time)"
+                YValue="@(dp => (decimal)dp.Interest)"
+                OrderByDescending="e => e.X"/>
+
+
+            <ApexPointSeries
+                TItem="DataPoint"
+                Items="AggregatedDataPoints"
+                Name="Fees"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Time)"
+                YValue="@(dp => (decimal)dp.Fees)"
+                OrderByDescending="e => e.X"/>
+
+
+            <ApexPointSeries
+                TItem="DataPoint"
+                Items="AggregatedDataPoints"
+                Name="Total"
+                SeriesType="SeriesType.Line"
+                XValue="@(dp => dp.Time)"
+                YValue="@(dp => (decimal)dp.Payment)"
+                OrderByDescending="e => e.X"/>
+        </ApexChart>
+    </div>
     @* </div> *@
 </div>
 
@@ -265,6 +310,9 @@
 
 
     private ReferencingEnumerable<DataPoint> DataPoints => new(() => _result.DataPoints);
+
+    private ReferencingEnumerable<DataPoint> AggregatedDataPoints => 
+        new(() => AggregateDataPoints(_result.DataPoints));
 
     private ReferencingEnumerable<Relation> Relations => new(() => new[]
     {
@@ -298,6 +346,31 @@
                 slider.Step,
                 formatter
                 );
+
+    private IEnumerable<DataPoint> AggregateDataPoints(IEnumerable<DataPoint> datapoints)
+    {
+        var fees = 0d;
+        var interest = 0d;
+        var amortization = 0d;
+        var payment = 0d;
+
+        foreach (var dp in _result.DataPoints)
+        {
+            fees += dp.Fees;
+            interest += dp.Interest;
+            amortization += dp.Amortization;
+            payment += dp.Payment;
+
+            yield return new DataPoint(
+                dp.Time, 
+                dp.Balance, 
+                payment, 
+                fees, 
+                interest, 
+                amortization
+            );
+        }
+    }
 
     private static string[] GenerateLabels<T>(
         T min,
@@ -374,7 +447,7 @@
         await Update();
         await _charts.UpdateAll();
     }
-    
+
     public async Task Update()
     {
         _result = await SimulateAll();

@@ -7,4 +7,15 @@ public record DataPoint(
     double Amortization,
     double Interest,
     double Fees
-);
+)
+{
+    public static DataPoint Zero =>
+        new(
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        );
+}
