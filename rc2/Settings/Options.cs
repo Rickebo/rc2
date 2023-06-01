@@ -94,7 +94,7 @@ public class Options
         if (!TimeStepOperatorFactors.TryGetValue(mode.ToLowerInvariant(), out var factor))
             throw new ArgumentException($"Unknown time step mode: {mode}");
         
-        if (!double.TryParse(rest, out var value))
+        if (!Expression.TryParseDouble(rest, out var value))
             throw new ArgumentException($"Invalid time step value: {rest}");
 
         return value / factor;

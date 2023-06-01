@@ -8,6 +8,7 @@
 @using System.Numerics
 @using System.Text.Json
 
+@inject IJSRuntime JsRuntime
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <PageTitle>Loan calculator</PageTitle>
@@ -41,7 +42,7 @@
             @bind-Value="@_bindableOptions.Payment"
             TickMarkLabels="@(GenerateLabels(0d, 40000d, 1000d, FormatMoney))"
             TickMarks="true" Step="1000" Min="0" Max="40000" ValueLabel="true">
-            Preferred monthly payment
+            Preferred monthly payment: minimum amount of money to pay each month. Increases according to inflation.
         </MudSlider>
     </div>
 
@@ -51,7 +52,7 @@
             @bind-Value="@_bindableOptions.DepositPercent"
             TickMarkLabels="@(GenerateLabels(0d, 100d, 5d, FormatPercent))"
             TickMarks="true" Step="5" Min="0" Max="100" ValueLabel="true">
-            Initial deposit
+            Initial deposit: percentage of loan amount that is paid upfront
         </MudSlider>
     </div>
 
@@ -61,7 +62,7 @@
             @bind-Value="@_bindableOptions.DepreciationPercent"
             TickMarkLabels="@(GenerateLabels(0d, 25d, 1d, FormatPercent))"
             TickMarks="true" Step="1" Min="0" Max="25" ValueLabel="true">
-            Depreciation
+            Depreciation: percentage of value deducted each year to account for inflation
         </MudSlider>
     </div>
 
@@ -71,7 +72,7 @@
             @bind-Value="@_bindableOptions.InflationPercent"
             TickMarkLabels="@(GenerateLabels(0d, 25d, 1d, FormatPercent))"
             TickMarks="true" Step="1" Min="0" Max="25" ValueLabel="true">
-            Inflation
+            Inflation: percentage of yearly increase in monthly payment and fees
         </MudSlider>
     </div>
 
@@ -81,7 +82,7 @@
             @bind-Value="@_bindableOptions.Fees"
             TickMarkLabels="@(GenerateLabels(0d, 8000, 250d, FormatMoney))"
             TickMarks="true" Step="250" Min="0" Max="8000" ValueLabel="true">
-            Monthly fees
+            Monthly fees: other monthly fees to account for. Increases according to inflation.
         </MudSlider>
     </div>
 
@@ -89,8 +90,8 @@
         <div class="options-item">
             <MudTextField
                 @bind-Value="_bindableOptions.MinAmortization"
-                Label="Min yearly amortization"
-                HelperText="Example: >=0.7=0.03;<0.7=0.02 means 3% amortization if loan is >= 70% of original value, and 2% if below 70%"
+                Label="Required minimum yearly amortization"
+                HelperText="Example: >=0.7=0.03;<0.7=0.02 means 3% amortization if loan is >= 70% of original value, and 2% if below 70%. Enter 0 for no minimum."
                 Variant="Variant.Outlined"/>
         </div>
 
@@ -98,7 +99,7 @@
             <MudTextField
                 @bind-Value="_bindableOptions.InterestDeduction"
                 Label="Interest tax deduction"
-                HelperText="Example: <=100000=0.3;>=100000=0.21 means 30% deduction if yearly interest is less than 100000, and 21% if above"
+                HelperText="Example: <=100000=0.3;>=100000=0.21 means 30% deduction if yearly interest is less than 100000, and 21% if above. Enter 0 for no deduction."
                 Variant="Variant.Outlined"/>
         </div>
 
@@ -107,7 +108,7 @@
             <MudTextField
                 @bind-Value="_bindableOptions.TimeStep"
                 Label="Simulation time step"
-                HelperText="Example: 1m means 1 month, 2w means two weeks"
+                HelperText="Example: 1m means 1 month, 2w means two weeks. Shorter time steps increase accuracy but slows down simulation."
                 Variant="Variant.Outlined"/>
         </div>
     </div>
@@ -295,6 +296,8 @@
 </div>
 
 @code {
+    private static double WindowWidth { get; set; }
+
     private MudSlider<double> _interestSlider;
     private MudSlider<double> _paymentSlider;
     private MudSlider<double> _inflationSlider;
@@ -325,6 +328,7 @@
 
     private SimulationResult _result = SimulationResult.Empty;
     private Charts _charts = new();
+    private static IJSRuntime Runtime;
 
     private static string FormatMoney(double money) =>
         money >= 1000000
@@ -376,7 +380,8 @@
         T min,
         T max,
         T ticks,
-        Func<T, string>? formatter = null
+        Func<T, string>? formatter = null,
+        bool dynamicSkips = true
         ) where T : INumber<T>
     {
         formatter ??= i => i.ToString() ?? string.Empty;
@@ -384,11 +389,22 @@
         var labels = new List<string>();
         var index = 0;
 
+        var keepEvery = 1;
+        var minWidth = 1280;
+        var actualWidth = WindowWidth;
+        keepEvery = 1 + (int)Math.Floor(minWidth / actualWidth);
+        var tickIndex = 0;
+
         for (var tick = min; tick <= max; tick += ticks)
-            labels.Add(formatter(tick));
+            labels.Add(tickIndex++ % keepEvery == 0
+                ? formatter(tick)
+                : "");
 
         return labels.ToArray();
     }
+
+    private async Task<WindowDimension> GetAdjustedDimensions() =>
+        await JsRuntime.InvokeAsync<WindowDimension>("getWindowDimensions");
 
     private readonly Timer _updateTimer = new Timer(
         TimeSpan.FromSeconds(1)
@@ -406,6 +422,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var dimensions = await GetAdjustedDimensions();
+        WindowWidth = dimensions.Width;
+
         _options = (await localStorage.GetItemAsync<Options>("options")) ?? Options.Default;
         _bindableOptions.PropertyChanged += (s, a) => OnSettingsChanged();
 
@@ -480,6 +499,12 @@
             InterestProportionDataPoints: interestProportionTask.Result,
             BalanceDataPoints: balanceTask.Result
             );
+    }
+
+    private class WindowDimension
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
     }
 
 }

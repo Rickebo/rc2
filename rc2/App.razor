@@ -1,4 +1,6 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿@inject IJSRuntime JsRuntime
+
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
         <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
@@ -10,3 +12,17 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code{
+
+    public App()
+    {
+        
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+
+}
