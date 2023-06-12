@@ -157,14 +157,19 @@
             Title="Total interest proportion of loan"
             @ref="_charts.InterestProportionChart"
             Options="_charts.InterestProportionOptions">
-            <ApexPointSeries
-                TItem="InterestDataPoint"
-                Items="Interests"
-                Name="Interest proportion"
-                SeriesType="SeriesType.Line"
-                XValue="@(dp => dp.Interest * 100)"
-                YValue="@(dp => (decimal)dp.InterestProportion * 100)"
-                OrderByDescending="e => e.X"/>
+
+            @foreach (var delay in InterestDelays)
+            {
+                var name = $"{delay} years delayed interest";
+                <ApexPointSeries
+                    TItem="InterestDataPoint"
+                    Items="Interests[delay]"
+                    Name="@name"
+                    SeriesType="SeriesType.Line"
+                    XValue="@(dp => dp.Interest * 100)"
+                    YValue="@(dp => (decimal)dp.InterestProportion * 100)"
+                    OrderByDescending="e => e.X"/>
+            }
         </ApexChart>
     </div>
     @* </div> *@
@@ -220,14 +225,28 @@
             Title="Required monthly payment vs interest"
             @ref="_charts.InterestChart"
             Options="_charts.InterestOptions">
-            <ApexPointSeries
-                TItem="InterestDataPoint"
-                Items="Interests"
-                Name="Required monthly payment"
-                SeriesType="SeriesType.Line"
-                XValue="@(dp => dp.Interest * 100)"
-                YValue="@(dp => (decimal)dp.MaxPayment)"
-                OrderByDescending="e => e.X"/>
+
+            @foreach (var delay in InterestDelays)
+            {
+                var name = $"{delay} years delayed interest";
+                <ApexPointSeries
+                    TItem="InterestDataPoint"
+                    Items="Interests[delay]"
+                    Name="@name"
+                    SeriesType="SeriesType.Line"
+                    XValue="@(dp => dp.Interest * 100)"
+                    YValue="@(dp => (decimal)dp.MaxPayment)"
+                    OrderByDescending="e => e.X"/>
+            }
+
+            @* <ApexPointSeries *@
+            @*     TItem="InterestDataPoint" *@
+            @*     Items="Interests" *@
+            @*     Name="Required monthly payment" *@
+            @*     SeriesType="SeriesType.Line" *@
+            @*     XValue="@(dp => dp.Interest * 100)" *@
+            @*     YValue="@(dp => (decimal)dp.MaxPayment)" *@
+            @*     OrderByDescending="e => e.X"/> *@
         </ApexChart>
     </div>
 
@@ -266,6 +285,8 @@
     private bool _isDarkMode = true;
     private MudThemeProvider _mudThemeProvider;
 
+    private static readonly int[] InterestDelays = { 0, 2, 5, 15 };
+
 
     private ReferencingEnumerable<DataPoint> DataPoints => new(() => _result.DataPoints);
 
@@ -275,7 +296,18 @@
         new Relation(_result.DataPoints, dp => dp.Amortization, "Amortization")
     });
 
-    private ReferencingEnumerable<InterestDataPoint> Interests => new(() => _result.InterestDataPoints);
+    private Dictionary<int, ReferencingEnumerable<InterestDataPoint>> Interests =>
+        InterestDelays
+            .ToDictionary(
+                delay => delay,
+                delay =>
+                    new ReferencingEnumerable<InterestDataPoint>(
+                        () => _result.InterestDataPoints.TryGetValue(delay, out var foundValue) 
+                            ? foundValue 
+                            : Enumerable.Empty<InterestDataPoint>()
+                        )
+            );
+
     private ReferencingEnumerable<BalanceDataPoint> BalanceCosts => new(() => _result.BalanceDataPoints);
 
     private SimulationResult _result = SimulationResult.Empty;
@@ -407,7 +439,8 @@
             allowInsufficientPayment: true
             ));
         var yearsTask = Task.Run(() => simulator.SimulateYears());
-        var interestTask = Task.Run(() => simulator.SimulateInterest(
+        var interestTask = Task.Run(() => simulator.SimulateInterestDelayed(
+            delays: InterestDelays,
             overridePayment: 0,
             overrideInflation: 0
             ));

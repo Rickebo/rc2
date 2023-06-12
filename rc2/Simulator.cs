@@ -30,7 +30,8 @@ public class Simulator
         bool accumulatedResultOnly = false,
         double? overridePayment = null,
         bool allowInsufficientPayment = false,
-        Options? opt = null
+        Options? opt = null,
+        Func<double, double>? overrideInterest = null
     )
     {
         opt ??= _options;
@@ -40,7 +41,6 @@ public class Simulator
 
         var yearlyPayment = payment * 12;
         var yearlyFees = opt.Fees * 12;
-        var yearlyInterest = opt.Interest;
         var yearlyInflation = opt.Inflation;
         var yearlyDepreciation = opt.Depreciation;
 
@@ -50,6 +50,8 @@ public class Simulator
 
         for (var time = 0d; time < endTime; time += timeStep)
         {
+            var yearlyInterest = overrideInterest?.Invoke(time) ?? opt.Interest;
+
             if (currentBalance < 0 && endAtZero)
             {
                 if (accumulatedResultOnly)
@@ -96,7 +98,7 @@ public class Simulator
                 yield return dp;
 
             currentBalance -= currentYearlyAmortization * timeStep;
-            
+
             if (yearlyDepreciation > 0)
                 currentBalance -= currentBalance * yearlyDepreciation * timeStep;
 
@@ -134,13 +136,43 @@ public class Simulator
         }
     }
 
-    public IEnumerable<InterestDataPoint> SimulateInterest(
+    public Dictionary<int, IEnumerable<InterestDataPoint>> SimulateInterestDelayed(
+        int[] delays,
         double minInterest = 0,
         double maxInterest = 0.2,
         double interestStep = 0.01,
         double endTime = 100,
         double? overridePayment = null,
         double? overrideInflation = null
+    )
+    {
+        var result = new Dictionary<int, IEnumerable<InterestDataPoint>>();
+        foreach (var delay in delays)
+        {
+            var points = SimulateInterest(
+                minInterest: minInterest,
+                maxInterest: maxInterest,
+                interestStep: interestStep,
+                endTime: endTime,
+                overridePayment: overridePayment,
+                overrideInflation: overrideInflation,
+                timeDelay: delay
+            );
+            
+            result.Add(delay, points.ToList());
+        }
+
+        return result;
+    }
+
+    public IEnumerable<InterestDataPoint> SimulateInterest(
+        double minInterest = 0,
+        double maxInterest = 0.2,
+        double interestStep = 0.01,
+        double endTime = 100,
+        double? overridePayment = null,
+        double? overrideInflation = null,
+        double? timeDelay = null
     )
     {
         var opt = _options.Clone();
@@ -152,13 +184,17 @@ public class Simulator
 
         for (var interest = minInterest; interest < maxInterest; interest += interestStep)
         {
-            opt.Interest = interest;
+            var localInterest = interest;
             var dps = Simulate(
                 endAtZero: true,
                 endTime: endTime,
                 accumulatedResultOnly: false,
                 allowInsufficientPayment: true,
-                opt: opt
+                opt: opt,
+                overrideInterest: time =>
+                    timeDelay == null || time >= timeDelay
+                        ? localInterest
+                        : opt.Interest
             );
 
             double? maxPayment = null;
