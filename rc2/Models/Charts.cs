@@ -28,6 +28,9 @@ public class Charts
     public ApexChart<DataPoint> BalanceChart { get; set; }
     public ApexChartOptions<DataPoint> BalanceOptions { get; }
 
+    public ApexChart<DataPoint> TotalCostsChart { get; set; }
+    public ApexChartOptions<DataPoint> TotalCostsOptions { get; }
+
     public ApexChart<DataPoint> CostsChart { get; set; }
     public ApexChartOptions<DataPoint> CostsOptions { get; }
 
@@ -111,6 +114,39 @@ public class Charts
                     Title = new AxisTitle()
                     {
                         Text = "Monthly expense"
+                    },
+                }
+            },
+            Xaxis = new XAxis()
+            {
+                Type = XAxisType.Numeric,
+                // TickAmount = 10,
+                TickPlacement = TickPlacement.On,
+                Title = new AxisTitle()
+                {
+                    Text = "Time (years)"
+                }
+            }
+        };
+        
+        TotalCostsOptions = new()
+        {
+            Theme = Theme,
+            Chart = new Chart()
+            {
+                Background = BackgroundColor
+            },
+            Yaxis = new List<YAxis>()
+            {
+                new YAxis()
+                {
+                    DecimalsInFloat = 0,
+                    AxisTicks = new AxisTicks()
+                    {
+                    },
+                    Title = new AxisTitle()
+                    {
+                        Text = "Total expense"
                     },
                 }
             },
@@ -304,7 +340,8 @@ public class Charts
             ExpensesChart?.UpdateOptionsAsync(true, true, true),
             InterestChart?.UpdateOptionsAsync(true, true, true),
             InterestProportionChart?.UpdateOptionsAsync(true, true, true),
-            BalanceCostChart?.UpdateOptionsAsync(true, true, true)
+            BalanceCostChart?.UpdateOptionsAsync(true, true, true),
+            TotalCostsChart?.UpdateOptionsAsync(true, true, true)
         };
 
         await Task.WhenAll(tasks
