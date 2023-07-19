@@ -6,11 +6,57 @@ public class Expression
 {
     private readonly string _text;
     private readonly Func<double, double?> _processor;
+    public double Threshold { get; }
+    public string Operator { get; }
     
-    private Expression(string text, Func<double, double?> processor)
+    public double InclusiveStart { get; }
+    public double ExclusiveEnd { get; }
+    
+    public bool IsLessThan => Operator is "<" or "<=" or "≤";
+    public bool IsGreaterThan => Operator is ">" or ">=" or "≥";
+    
+    private Expression(string text, Func<double, double?> processor, string op, double threshold)
     {
         _text = text;
         _processor = processor;
+
+        Operator = op;
+        Threshold = threshold;
+
+        switch (op)
+        {
+            case "<":
+                InclusiveStart = double.NegativeInfinity;
+                ExclusiveEnd = threshold;
+                break;
+            
+            case "≤":
+            case "<=":
+                InclusiveStart = double.NegativeInfinity;
+                ExclusiveEnd = threshold + double.Epsilon;
+                break;
+            
+            case ">":
+                InclusiveStart = threshold + double.Epsilon;
+                ExclusiveEnd = double.PositiveInfinity;
+                break;
+            
+            case "≥":
+            case ">=":
+                InclusiveStart = threshold;
+                ExclusiveEnd = double.PositiveInfinity;
+                break;
+            
+            case "=":
+                InclusiveStart = threshold;
+                ExclusiveEnd = threshold + double.Epsilon;
+                break;
+            
+            case "!=":
+                InclusiveStart = threshold + double.Epsilon;
+                ExclusiveEnd = threshold;
+                break;
+        }
     }
 
     private static bool IsDigit(char ch) => char.IsDigit(ch) || ch is ',' or '.';
@@ -26,7 +72,7 @@ public class Expression
             if (!TryParseDouble(text, out var constant))
                 throw new ArgumentException($"Invalid constant: {text}");
 
-            return new Expression(text, _ => constant);
+            return new Expression(text, _ => constant, "c", constant);
         }
         
         var opPart = string.Join("=", split.Take(split.Length - 1));
@@ -54,7 +100,7 @@ public class Expression
             _ => throw new ArgumentException($"Unknown operator: {op}")
         };
 
-        return new Expression(text, processor);
+        return new Expression(text, processor, op, operatorValue);
     }
 
     public double? Process(double input) => _processor(input);

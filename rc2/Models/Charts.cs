@@ -322,7 +322,8 @@ public class Charts
             ExpensesChart?.UpdateSeriesAsync(),
             InterestChart?.UpdateSeriesAsync(),
             InterestProportionChart?.UpdateSeriesAsync(),
-            BalanceCostChart?.UpdateSeriesAsync()
+            BalanceCostChart?.UpdateSeriesAsync(),
+            TotalCostsChart?.UpdateSeriesAsync()
         };
 
         await Task.WhenAll(tasks

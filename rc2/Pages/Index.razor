@@ -390,7 +390,7 @@
         var amortization = 0d;
         var payment = 0d;
 
-        foreach (var dp in _result.DataPoints)
+        foreach (var dp in datapoints)
         {
             fees += dp.Fees;
             interest += dp.Interest;
@@ -398,12 +398,12 @@
             payment += dp.Payment;
 
             yield return new DataPoint(
-                dp.Time, 
-                dp.Balance, 
-                payment, 
-                fees, 
-                interest, 
-                amortization
+                Time: dp.Time, 
+                Balance: dp.Balance, 
+                Payment: payment, 
+                Amortization: amortization, 
+                Interest: interest, 
+                Fees: fees
             );
         }
     }

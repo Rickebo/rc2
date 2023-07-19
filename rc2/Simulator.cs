@@ -62,7 +62,8 @@ public class Simulator
 
             // If, for example, deduction is 0.3 (30%), then 30% of interest is deducted, hence factor should be 0.7.
             var currentYearlyInterestFactor = 1 - opt.InterestDeductionExpression.Process(
-                currentBalance * yearlyInterest
+                currentBalance * yearlyInterest,
+                mode: MultiExpression.ProcessMode.Aggregate
             );
             var currentYearlyInterest = yearlyInterest * currentYearlyInterestFactor;
 
