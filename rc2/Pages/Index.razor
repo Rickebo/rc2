@@ -123,6 +123,7 @@
             TItem="DataPoint"
             Title="Loan balance over time"
             @ref="_charts.BalanceChart"
+            Height="@ChartHeight"
             Options="_charts.BalanceOptions">
             <ApexPointSeries
                 TItem="DataPoint"
@@ -138,6 +139,7 @@
         <ApexChart
             TItem="Relation"
             Title="Total expenses"
+            Height="@ChartHeight"
             @ref="_charts.ExpensesChart"
             Options="_charts.ExpensesOptions">
             <ApexPointSeries
@@ -155,6 +157,7 @@
         <ApexChart
             TItem="InterestDataPoint"
             Title="Total interest proportion of loan"
+            Height="@ChartHeight"
             @ref="_charts.InterestProportionChart"
             Options="_charts.InterestProportionOptions">
 
@@ -178,6 +181,7 @@
         <ApexChart
             TItem="DataPoint"
             Title="Monthly expenses"
+            Height="@ChartHeight"
             @ref="_charts.CostsChart"
             Options="_charts.CostsOptions">
             <ApexPointSeries
@@ -223,6 +227,7 @@
         <ApexChart
             TItem="InterestDataPoint"
             Title="Required monthly payment vs interest"
+            Height="@ChartHeight"
             @ref="_charts.InterestChart"
             Options="_charts.InterestOptions">
 
@@ -254,6 +259,7 @@
         <ApexChart
             TItem="BalanceDataPoint"
             Title="Required monthly payment vs balance"
+            Height="@ChartHeight"
             @ref="_charts.BalanceCostChart"
             Options="_charts.BalanceCostOptions">
             <ApexPointSeries
@@ -270,6 +276,7 @@
         <ApexChart
             TItem="DataPoint"
             Title="Total expense"
+            Height="@ChartHeight"
             @ref="_charts.TotalCostsChart"
             Options="_charts.TotalCostsOptions">
             <ApexPointSeries
@@ -315,6 +322,7 @@
 </div>
 
 @code {
+        private const int ChartHeight = 600;
     private static double WindowWidth { get; set; }
 
     private MudSlider<double> _interestSlider;
