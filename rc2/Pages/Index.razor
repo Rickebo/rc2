@@ -20,8 +20,8 @@
         <MudSlider
             @ref="_interestSlider"
             @bind-Value="@_bindableOptions.InterestPercent"
-            TickMarkLabels="@(GenerateLabels(0d, 25d, 1d, FormatPercent))"
-            TickMarks="true" Step="1" Min="0" Max="25" ValueLabel="true">
+            TickMarkLabels="@(GenerateLabels(0d, 25d, 0.5d, FormatPercent))"
+            TickMarks="true" Step="0.5" Min="0" Max="25" ValueLabel="true">
             Interest
         </MudSlider>
     </div>
@@ -30,7 +30,7 @@
         <MudSlider
             @ref="_balanceSlider"
             @bind-Value="@_bindableOptions.Balance"
-            TickMarkLabels="@(GenerateLabels(0d, 5000000d, 250000d, FormatMoney))"
+            TickMarkLabels="@(GenerateLabels(0d, 5000000d, 100000d, FormatMoney))"
             TickMarks="true" Step="100000" Min="0" Max="5000000" ValueLabel="true">
             Loan amount
         </MudSlider>
@@ -40,7 +40,7 @@
         <MudSlider
             @ref="_paymentSlider"
             @bind-Value="@_bindableOptions.Payment"
-            TickMarkLabels="@(GenerateLabels(0d, 40000d, 1000d, FormatMoney))"
+            TickMarkLabels="@(GenerateLabels(0d, 40000d, 500d, FormatMoney))"
             TickMarks="true" Step="500" Min="0" Max="40000" ValueLabel="true">
             Preferred monthly payment: minimum amount of money to pay each month. Increases according to inflation.
         </MudSlider>
@@ -50,7 +50,7 @@
         <MudSlider
             @ref="_depositSlider"
             @bind-Value="@_bindableOptions.DepositPercent"
-            TickMarkLabels="@(GenerateLabels(0d, 100d, 5d, FormatPercent))"
+            TickMarkLabels="@(GenerateLabels(0d, 100d, 2.5d, FormatPercent))"
             TickMarks="true" Step="2.5" Min="0" Max="100" ValueLabel="true">
             Initial deposit: percentage of loan amount that is paid upfront
         </MudSlider>
@@ -60,7 +60,7 @@
         <MudSlider
             @ref="_depreciationSlider"
             @bind-Value="@_bindableOptions.DepreciationPercent"
-            TickMarkLabels="@(GenerateLabels(0d, 25d, 1d, FormatPercent))"
+            TickMarkLabels="@(GenerateLabels(0d, 25d, 0.5d, FormatPercent))"
             TickMarks="true" Step="0.5" Min="0" Max="25" ValueLabel="true">
             Depreciation: percentage of value deducted each year to account for inflation
         </MudSlider>
@@ -70,7 +70,7 @@
         <MudSlider
             @ref="_inflationSlider"
             @bind-Value="@_bindableOptions.InflationPercent"
-            TickMarkLabels="@(GenerateLabels(0d, 25d, 1d, FormatPercent))"
+            TickMarkLabels="@(GenerateLabels(0d, 25d, 0.5d, FormatPercent))"
             TickMarks="true" Step="0.5" Min="0" Max="25" ValueLabel="true">
             Inflation: percentage of yearly increase in monthly payment and fees
         </MudSlider>
