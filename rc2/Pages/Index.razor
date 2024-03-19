@@ -40,8 +40,8 @@
         <MudSlider
             @ref="_paymentSlider"
             @bind-Value="@_bindableOptions.Payment"
-            TickMarkLabels="@(GenerateLabels(0d, 40000d, 500d, FormatMoney))"
-            TickMarks="true" Step="500" Min="0" Max="40000" ValueLabel="true">
+            TickMarkLabels="@(GenerateLabels(0d, 25000d, 500d, FormatMoney))"
+            TickMarks="true" Step="500" Min="0" Max="25000" ValueLabel="true">
             Preferred monthly payment: minimum amount of money to pay each month. Increases according to inflation.
         </MudSlider>
     </div>
@@ -378,7 +378,7 @@
                 : $"{money:0.##}";
 
     private static string FormatPercent(double percent) =>
-        $"{percent:0}%";
+        $"{percent:1}%";
 
     private static string[] GenerateLabels<T>(
         MudSlider<T> slider,
