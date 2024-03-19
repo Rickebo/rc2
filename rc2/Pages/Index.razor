@@ -378,7 +378,7 @@
                 : $"{money:0.##}";
 
     private static string FormatPercent(double percent) =>
-        $"{percent:1}%";
+        $"{percent:0.#}%";
 
     private static string[] GenerateLabels<T>(
         MudSlider<T> slider,
